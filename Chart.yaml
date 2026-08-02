@@ -1,0 +1,21 @@
+apiVersion: v2
+name: community
+version: 0.1.0
+kubeVersion: ">=1.25.0-0"
+description: pappus의 개인프로젝트
+type: application
+
+keywords:
+  - community
+  - frontend
+  - backend
+  - nginx
+
+sources:
+  - https://github.com/joongsunyoon/ktb_homework_community
+  - https://github.com/joongsunyoon/ktb_homework_community_fe
+
+maintainers:
+  - name: joongsunYoon
+    email: yuuu5683@naver.com
+
