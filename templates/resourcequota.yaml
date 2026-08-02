@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: community
+  labels:
+    app: community
+    tier: platform
+spec:
+  hard:
+    requests.cpu: "900m"
+    requests.memory: "1941Mi"

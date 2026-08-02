@@ -1,0 +1,6 @@
+Community is installed in namespace {{ .Release.Namespace }}.
+
+Nginx service type: NodePort
+Access it through any cluster node on port 30080.
+
+Backend secret name: secret
