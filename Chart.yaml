@@ -9,11 +9,12 @@ keywords:
   - community
   - frontend
   - backend
-  - nginx
+  - ingress
 
 sources:
   - https://github.com/joongsunyoon/ktb_homework_community
   - https://github.com/joongsunyoon/ktb_homework_community_fe
+  - https://github.com/joongsunYoon/community
 
 maintainers:
   - name: joongsunYoon
