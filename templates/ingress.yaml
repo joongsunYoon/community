@@ -8,7 +8,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - http:
+    - host: pappus.cloud
+      http:
         paths:
           - path: /api
             pathType: Prefix
@@ -17,6 +18,7 @@ spec:
                 name: community
                 port:
                   number: 80
+
           - path: /
             pathType: Prefix
             backend:
