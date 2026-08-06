@@ -1,0 +1,69 @@
+name: Update application image tags
+
+# FE/BE 저장소가 repository_dispatch로 전달한 배포 요청을 받는다.
+# 실제 Kubernetes Deployment 수정은 이 GitOps 저장소에서만 수행한다.
+on:
+  repository_dispatch:
+    types:
+      - deploy-frontend
+      - deploy-backend
+
+# 같은 저장소에 FE와 BE가 동시에 commit할 때 충돌하지 않도록 순서대로 실행한다.
+concurrency:
+  group: update-application-image-tags
+  cancel-in-progress: false
+
+jobs:
+  update-image:
+    runs-on: ubuntu-latest
+    # 같은 community 저장소의 YAML을 commit하고 push하기 위한 권한이다.
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      # 전달된 SHA가 정상적인 Git 커밋 SHA인지 확인한다.
+      # 검증 후 이벤트 종류에 맞는 Deployment 파일만 수정한다.
+      - name: Update Deployment image tag
+        env:
+          EVENT_TYPE: ${{ github.event.action }}
+          IMAGE_SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          if [[ ! "${IMAGE_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "올바르지 않은 Git SHA입니다: ${IMAGE_SHA}"
+            exit 1
+          fi
+
+          if [[ "${EVENT_TYPE}" == "deploy-frontend" ]]; then
+            IMAGE="ghcr.io/joongsunyoon/ktb_homework_community_fe:${IMAGE_SHA}"
+            FILE="templates/deployment-frontend.yaml"
+          elif [[ "${EVENT_TYPE}" == "deploy-backend" ]]; then
+            IMAGE="ghcr.io/joongsunyoon/ktb_homework_community:${IMAGE_SHA}"
+            FILE="templates/deployment-backend.yaml"
+          else
+            echo "지원하지 않는 이벤트입니다: ${EVENT_TYPE}"
+            exit 1
+          fi
+
+          sed -i -E "s#image: ghcr.io/joongsunyoon/[^[:space:]]+#image: ${IMAGE}#" "${FILE}"
+          grep -F "image: ${IMAGE}" "${FILE}"
+
+      # GitOps 저장소의 변경만 Argo CD가 감지하므로 수정한 SHA를 main에 기록한다.
+      - name: Commit and push image tag
+        env:
+          EVENT_TYPE: ${{ github.event.action }}
+          IMAGE_SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add templates/deployment-frontend.yaml templates/deployment-backend.yaml
+          git diff --cached --quiet && exit 0
+          git commit -m "deploy: ${EVENT_TYPE} ${IMAGE_SHA}"
+          git pull --rebase origin main
+          git push origin main
+
+      # 위 push를 감지한 Argo CD가 변경된 SHA 이미지로 Pod를 자동 교체한다.
