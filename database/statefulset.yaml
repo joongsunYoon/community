@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+    tier: database
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+      tier: database
+  template:
+    metadata:
+      labels:
+        app: mysql
+        tier: database
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MYSQL_DATABASE
+              value: community
+            - name: MYSQL_ROOT_HOST
+              value: "%"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: DB_PASSWORD
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysql -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" -D community -e "SELECT 1" --silent
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: local-path
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
