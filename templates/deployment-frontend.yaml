@@ -26,6 +26,9 @@ spec:
         - name: community-fe
           image: ghcr.io/joongsunyoon/ktb_homework_community_fe:main
           imagePullPolicy: Always
+          env:
+            - name: API_BASE_URL
+              value: https://pappus.cloud
           ports:
             - name: http
               containerPort: 3000
