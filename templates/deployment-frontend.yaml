@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: community-fe
-          image: ghcr.io/joongsunyoon/ktb_homework_community_fe:f537ab3c9803f38585280a7ec565e33c35040524
+          image: ghcr.io/joongsunyoon/ktb_homework_community_fe:521cc75219b9d66e3b351e21457b7e0e9a2e9cfb
           imagePullPolicy: Always
           env:
             - name: API_BASE_URL
