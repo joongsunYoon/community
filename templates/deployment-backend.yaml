@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: community-be
-          image: ghcr.io/joongsunyoon/ktb_homework_community:3461a888af864db6d3718549044afb46c330b079
+          image: ghcr.io/joongsunyoon/ktb_homework_community:4ae19937ce5010e7ed0f316cbe90707600f54048
           imagePullPolicy: Always
           ports:
             - name: http
